@@ -3,10 +3,11 @@ name = "rl-src"
 version = "0.1.0"
 description = "強化学習ライブラリ：MDP理論に基づいた環境とエージェントの実装"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "matplotlib>=3.10.3",
     "numpy>=2.3.1",
+    "pydantic>=2.5.0",
     "pytest>=8.4.1",
 ]
 
@@ -20,4 +21,4 @@ pythonpath = ["src"]
 addopts = "-v --tb=short"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/rl_src"]
+packages = ["src"]

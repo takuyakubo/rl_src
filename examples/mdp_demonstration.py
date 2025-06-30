@@ -12,6 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import numpy as np
 import matplotlib.pyplot as plt
 from gridworld import GridWorldEnvironment
+from gridworld_factory import create_gridworld_mdp_core
 
 
 def main():
@@ -43,10 +44,12 @@ def demonstrate_deterministic_mdp():
     """決定的MDPの実証"""
     print("\n=== 決定的MDP環境 ===")
     
-    env = GridWorldEnvironment(size=3, stochastic=False, random_seed=42)
+    # MDPCoreを作成してから環境を構築
+    mdp_core = create_gridworld_mdp_core(size=3, stochastic=False, random_seed=42)
+    env = GridWorldEnvironment(mdp_core=mdp_core, goal=(2, 2), random_seed=42)
     
     # 基本情報を表示
-    print(f"状態空間のサイズ: {len(env._state_space)}")
+    print(f"状態空間のサイズ: {len(env.states)}")
     print(f"行動空間: {env.get_action_space()}")
     print(f"ゴール位置: {env.goal}")
     
@@ -62,25 +65,29 @@ def demonstrate_deterministic_mdp():
     
     # 実際のエピソード実行
     print("\n--- エピソード実行例 ---")
-    env.reset()
-    print(f"初期状態: {env.get_current_state()}")
+    current_state = env.reset()
+    print(f"初期状態: {current_state}")
     
     actions = ["right", "right", "down", "down"]
+    total_reward = 0
+    step_count = 0
+    
     for i, action in enumerate(actions):
         if not env.is_done():
             next_state, reward, done, info = env.step(action)
+            total_reward += reward
+            step_count += 1
             print(f"ステップ{i+1}: {action} → {next_state}, 報酬={reward:.1f}, 終了={done}")
+            current_state = next_state
         
         if env.is_done():
             break
     
     # エピソード分析
-    history = env.get_history()
-    total_reward = sum(transition.reward for transition in history)
-    reached_goal = env.get_current_state() == env.goal
+    reached_goal = env.is_done()
     
     print(f"\nエピソード結果:")
-    print(f"  総ステップ数: {len(history)}")
+    print(f"  総ステップ数: {step_count}")
     print(f"  総報酬: {total_reward:.1f}")
     print(f"  ゴール到達: {reached_goal}")
 
@@ -89,7 +96,9 @@ def demonstrate_stochastic_mdp():
     """確率的MDPの実証"""
     print("\n=== 確率的MDP環境 ===")
     
-    env = GridWorldEnvironment(size=3, stochastic=True, random_seed=42)
+    # 確率的MDPCoreを作成
+    mdp_core = create_gridworld_mdp_core(size=3, stochastic=True, random_seed=42)
+    env = GridWorldEnvironment(mdp_core=mdp_core, goal=(2, 2), random_seed=42)
     
     # マルコフ性の実証（確率的環境でも同じ）
     print("\n--- マルコフ性の実証 ---")
@@ -101,11 +110,8 @@ def demonstrate_stochastic_mdp():
     test_action = "right"
     
     print(f"状態 {test_state} で行動 '{test_action}' を取った場合:")
-    if env.stochastic:
-        print(f"  → 意図した方向: 80%")
-        print(f"  → 他の方向: 各5%")
-    else:
-        print(f"  → 決定的な遷移")
+    print(f"  → 意図した方向: 80%")
+    print(f"  → 他の方向: 各5%")
     
     # 複数回実行して確率的性質を確認
     print("\n--- 確率的実行の例 ---")
@@ -129,13 +135,24 @@ def compare_environments():
     """環境の比較実験"""
     print("\n=== 環境の比較実験 ===")
     
-    # 異なる設定の環境を作成
-    environments = {
-        "決定的環境": GridWorldEnvironment(size=3, stochastic=False, random_seed=42),
-        "確率的環境": GridWorldEnvironment(size=3, stochastic=True, random_seed=42),
-        "大きなコスト": GridWorldEnvironment(size=3, stochastic=False, move_cost=-0.5, random_seed=42),
-        "大きな報酬": GridWorldEnvironment(size=3, stochastic=False, goal_reward=10.0, random_seed=42)
-    }
+    # 異なる設定のMDPCoreと環境を作成
+    environments = {}
+    
+    # 決定的環境
+    mdp_core1 = create_gridworld_mdp_core(size=3, stochastic=False, random_seed=42)
+    environments["決定的環境"] = GridWorldEnvironment(mdp_core=mdp_core1, goal=(2, 2), random_seed=42)
+    
+    # 確率的環境  
+    mdp_core2 = create_gridworld_mdp_core(size=3, stochastic=True, random_seed=42)
+    environments["確率的環境"] = GridWorldEnvironment(mdp_core=mdp_core2, goal=(2, 2), random_seed=42)
+    
+    # 大きなコスト
+    mdp_core3 = create_gridworld_mdp_core(size=3, stochastic=False, move_cost=-0.5, random_seed=42)
+    environments["大きなコスト"] = GridWorldEnvironment(mdp_core=mdp_core3, goal=(2, 2), random_seed=42)
+    
+    # 大きな報酬
+    mdp_core4 = create_gridworld_mdp_core(size=3, stochastic=False, goal_reward=10.0, random_seed=42)
+    environments["大きな報酬"] = GridWorldEnvironment(mdp_core=mdp_core4, goal=(2, 2), random_seed=42)
     
     test_trajectory = ["right", "down", "right", "down"]
     
@@ -166,7 +183,9 @@ def run_sample_episodes():
     """サンプルエピソードの実行"""
     print("\n=== サンプルエピソードの実行 ===")
     
-    env = GridWorldEnvironment(size=4, stochastic=False, random_seed=42)
+    # 4x4グリッドのMDPCoreを作成
+    mdp_core = create_gridworld_mdp_core(size=4, stochastic=False, random_seed=42)
+    env = GridWorldEnvironment(mdp_core=mdp_core, goal=(3, 3), random_seed=42)
     
     # より大きなグリッドでのエピソード実行
     print("4x4グリッドでのランダム方策エピソード:")
@@ -176,11 +195,12 @@ def run_sample_episodes():
     for episode in range(3):
         print(f"\n--- エピソード {episode + 1} ---")
         
-        env.reset()
+        current_state = env.reset()
         step_count = 0
         max_steps = 20
+        total_reward = 0
         
-        print(f"開始位置: {env.get_current_state()}")
+        print(f"開始位置: {current_state}")
         
         while not env.is_done() and step_count < max_steps:
             # ランダムに行動を選択
@@ -188,6 +208,7 @@ def run_sample_episodes():
             next_state, reward, done, info = env.step(action)
             
             step_count += 1
+            total_reward += reward
             print(f"ステップ{step_count}: {action} → {next_state}, 報酬={reward:.1f}")
             
             if done:
@@ -198,29 +219,28 @@ def run_sample_episodes():
             print("⏰ 最大ステップ数に到達")
         
         # エピソード分析
-        history = env.get_history()
-        total_reward = sum(transition.reward for transition in history)
-        print(f"結果: {len(history)}ステップ, 総報酬={total_reward:.1f}")
+        print(f"結果: {step_count}ステップ, 総報酬={total_reward:.1f}")
 
 
 def visualize_environment():
     """環境の可視化（オプション）"""
     print("\n=== 環境の可視化 ===")
     
-    env = GridWorldEnvironment(size=4, stochastic=False)
-    env.reset()
+    # 4x4グリッドのMDPCoreを作成
+    mdp_core = create_gridworld_mdp_core(size=4, stochastic=False)
+    env = GridWorldEnvironment(mdp_core=mdp_core, goal=(3, 3))
+    current_pos = env.reset()
     
     # いくつかの行動を実行
     actions = ["right", "right", "down", "left", "down", "right"]
     
     for action in actions:
         if not env.is_done():
-            env.step(action)
+            current_pos, reward, done, info = env.step(action)
     
     try:
         # 簡単なテキスト表示
         print("現在の位置とゴールの関係:")
-        current_pos = env.get_current_state()
         print(f"現在位置: {current_pos}")
         print(f"ゴール位置: {env.goal}")
         print(f"距離: {abs(current_pos[0] - env.goal[0]) + abs(current_pos[1] - env.goal[1])}")

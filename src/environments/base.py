@@ -151,6 +151,19 @@ class Environment(ABC, Generic[StateType, ActionType, ObservationType]):
         """
         pass
     
+    @abstractmethod
+    def get_available_actions(self, state: Optional[StateType] = None) -> List[ActionType]:
+        """
+        指定された状態で利用可能な行動のリストを返す
+        
+        Args:
+            state: 状態。Noneの場合は現在の状態を使用
+            
+        Returns:
+            利用可能な行動のリスト
+        """
+        pass
+    
     
     def get_history(self) -> List[StateTransition[StateType, ActionType]]:
         """

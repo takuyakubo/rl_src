@@ -7,9 +7,17 @@
 from .value_iteration import ValueIterationStrategy
 from .q_learning import EpsilonGreedyStrategy
 from .random_strategy import RandomStrategy
+from .monte_carlo import (
+    FirstVisitMonteCarloStrategy,
+    MonteCarloControlStrategy,
+    MonteCarloEvaluationStrategy
+)
 
 __all__ = [
     "ValueIterationStrategy",
     "EpsilonGreedyStrategy", 
-    "RandomStrategy"
+    "RandomStrategy",
+    "FirstVisitMonteCarloStrategy",
+    "MonteCarloControlStrategy", 
+    "MonteCarloEvaluationStrategy"
 ]

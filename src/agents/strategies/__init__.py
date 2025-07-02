@@ -12,6 +12,7 @@ from .monte_carlo import (
     MonteCarloControlStrategy,
     MonteCarloEvaluationStrategy
 )
+from .td_learning import TDZeroStrategy
 
 __all__ = [
     "ValueIterationStrategy",
@@ -19,5 +20,6 @@ __all__ = [
     "RandomStrategy",
     "FirstVisitMonteCarloStrategy",
     "MonteCarloControlStrategy", 
-    "MonteCarloEvaluationStrategy"
+    "MonteCarloEvaluationStrategy",
+    "TDZeroStrategy"
 ]
